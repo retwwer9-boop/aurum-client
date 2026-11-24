@@ -7,6 +7,7 @@ import json
 import os
 import socket
 import ssl
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -156,43 +157,93 @@ class AurumClient:
 
     # ------------------------------------------------------------------ загрузка
 
-    def download(self, url: str, destination: Path, progress: Callable[[int, int], None] | None = None) -> Path:
-        """Скачивает файл с сервера (относительный путь допустим) во временный .part."""
+    def download(
+        self,
+        url: str,
+        destination: Path,
+        progress: Callable[[int, int], None] | None = None,
+        attempts: int = 6,
+    ) -> Path:
+        """Скачивает файл во временный .part, продолжая с места обрыва.
+
+        GitHub Releases и мобильные сети регулярно рвут длинную загрузку,
+        поэтому файл докачивается через Range, а 5xx/сетевые ошибки повторяются.
+        """
         destination.parent.mkdir(parents=True, exist_ok=True)
         absolute = url if url.startswith(("http://", "https://")) else self.base_url + url
-
-        request = urllib.request.Request(absolute)
-        # Токен — только нашему серверу. На GitHub Releases он не нужен и его нельзя светить.
-        if self.token and absolute.startswith(self.base_url + "/"):
-            request.add_header("Authorization", f"Bearer {self.token}")
-
         temporary = destination.with_suffix(destination.suffix + ".part")
-        try:
-            with _urlopen(request, 120) as response:
-                total = int(response.headers.get("Content-Length") or 0)
-                received = 0
-                with open(temporary, "wb") as handle:
-                    while True:
-                        chunk = response.read(CHUNK)
-                        if not chunk:
-                            break
-                        handle.write(chunk)
-                        received += len(chunk)
-                        if progress:
-                            progress(received, total)
-        except urllib.error.HTTPError as exc:
-            temporary.unlink(missing_ok=True)
-            raise ApiError(exc.code, _error_detail(exc)) from None
-        except urllib.error.URLError as exc:
-            temporary.unlink(missing_ok=True)
-            raise ApiError(0, f"Загрузка не удалась: {exc.reason}") from None
 
-        if temporary.stat().st_size == 0:
+        last: Exception | None = None
+        for attempt in range(1, attempts + 1):
+            try:
+                self._fetch(absolute, temporary, progress)
+                break
+            except _Retryable as exc:
+                last = exc.cause
+                if attempt == attempts:
+                    raise ApiError(0, f"Загрузка прервалась: {exc}") from None
+                time.sleep(min(2 * attempt, 10))
+            except urllib.error.HTTPError as exc:
+                if exc.code >= 500 or exc.code == 429:
+                    last = exc
+                    if attempt == attempts:
+                        raise ApiError(exc.code, _error_detail(exc)) from None
+                    time.sleep(min(2 * attempt, 10))
+                    continue
+                temporary.unlink(missing_ok=True)
+                raise ApiError(exc.code, _error_detail(exc)) from None
+            except (urllib.error.URLError, OSError, http.client.HTTPException) as exc:
+                last = exc
+                if attempt == attempts:
+                    reason = getattr(exc, "reason", exc)
+                    raise ApiError(0, f"Загрузка не удалась: {reason}") from None
+                time.sleep(min(2 * attempt, 10))
+
+        if not temporary.exists() or temporary.stat().st_size == 0:
             temporary.unlink(missing_ok=True)
             raise ApiError(0, "Сервер вернул пустой файл")
 
         os.replace(temporary, destination)
         return destination
+
+    def _fetch(self, absolute: str, temporary: Path, progress: Callable[[int, int], None] | None) -> None:
+        have = temporary.stat().st_size if temporary.exists() else 0
+
+        request = urllib.request.Request(absolute)
+        # Токен — только нашему серверу. На GitHub Releases он не нужен и его нельзя светить.
+        if self.token and absolute.startswith(self.base_url + "/"):
+            request.add_header("Authorization", f"Bearer {self.token}")
+        if have:
+            request.add_header("Range", f"bytes={have}-")
+
+        with _urlopen(request, 120) as response:
+            status = getattr(response, "status", 200)
+            if have and status == 200:
+                have = 0  # сервер проигнорировал Range — начинаем заново
+            mode = "ab" if have else "wb"
+
+            length = int(response.headers.get("Content-Length") or 0)
+            total = have + length if length else 0
+            received = 0
+            with open(temporary, mode) as handle:
+                while True:
+                    chunk = response.read(CHUNK)
+                    if not chunk:
+                        break
+                    handle.write(chunk)
+                    received += len(chunk)
+                    if progress:
+                        progress(have + received, total)
+
+        size = temporary.stat().st_size if temporary.exists() else 0
+        if total and size < total:
+            raise _Retryable(f"получено {size} из {total} байт")
+
+
+class _Retryable(Exception):
+    def __init__(self, cause: object) -> None:
+        super().__init__(str(cause))
+        self.cause = cause
 
 
 def _error_detail(exc: urllib.error.HTTPError) -> str:
