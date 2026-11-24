@@ -397,22 +397,35 @@ def set_env(service_id: str, key: str, value: str) -> None:
 
 def trigger_deploy(service_id: str) -> str:
     payload = render("POST", f"/services/{service_id}/deploys", {"clearCache": "do_not_clear"})
-    deploy = unwrap(payload, "deploy") or {}
-    return str(deploy.get("id") or payload)
+    if isinstance(payload, dict):
+        if payload.get("id"):
+            return str(payload["id"])
+        deploy = unwrap(payload, "deploy") or {}
+        if deploy.get("id"):
+            return str(deploy["id"])
+
+    # API может вернуть объект без вложенности — берём самый свежий деплой.
+    for item in render("GET", f"/services/{service_id}/deploys?limit=1") or []:
+        return str(unwrap(item, "deploy").get("id") or "")
+    return ""
 
 
 def wait_deploy(service_id: str, deploy_id: str, timeout: float = 900.0) -> bool:
     deadline = time.time() + timeout
     last = ""
     while time.time() < deadline:
-        deploy = unwrap(render("GET", f"/services/{service_id}/deploys/{deploy_id}"), "deploy") or {}
+        if deploy_id:
+            deploy = unwrap(render("GET", f"/services/{service_id}/deploys/{deploy_id}"), "deploy") or {}
+        else:
+            items = render("GET", f"/services/{service_id}/deploys?limit=1") or []
+            deploy = unwrap(items[0], "deploy") if items else {}
         status = str(deploy.get("status", ""))
         if status != last:
             print(f"      деплой: {status}")
             last = status
-        if status == "live":
-            return True
-        if status in {"build_failed", "update_failed", "canceled", "deactivated"}:
+        if status in {"live", "deactivated"}:
+            return status == "live"
+        if status in {"build_failed", "update_failed", "canceled"}:
             print(f"      деплой остановлен: {status} (логи в Render Dashboard)")
             return False
         time.sleep(10)
