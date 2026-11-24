@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Оплата — Aurum{% endblock %}
+
+{% block content %}
+<section class="section buy">
+  <div class="wrap narrow">
+    <div class="card buy-card center">
+      <div class="state-icon" data-icon>…</div>
+      <h2 data-title>Проверяем оплату</h2>
+      <p class="muted" data-text>Обычно это занимает несколько секунд. Страницу можно не закрывать.</p>
+
+      <div class="panel-actions center">
+        <a class="btn btn-primary btn-sm" href="/account" data-account hidden>В личный кабинет</a>
+        <a class="btn btn-ghost btn-sm" href="/#pricing" data-retry hidden>Выбрать другой тариф</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

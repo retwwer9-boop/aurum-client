@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Оплата подписки — Aurum{% endblock %}
+
+{% block content %}
+<section class="section buy">
+  <div class="wrap narrow">
+    <div class="section-head">
+      <h2>Оплата подписки</h2>
+      <p class="muted">Оплата картой или через СБП на защищённой странице ЮKassa.</p>
+    </div>
+
+    <div class="card buy-card">
+      <div class="buy-row">
+        <span class="muted">Тариф</span>
+        <strong data-plan-title>—</strong>
+      </div>
+      <div class="buy-row">
+        <span class="muted">Срок</span>
+        <span data-plan-days>—</span>
+      </div>
+      <div class="buy-row total">
+        <span>К оплате</span>
+        <strong data-plan-price>—</strong>
+      </div>
+
+      <p class="form-error" data-error hidden></p>
+
+      {% if payments_enabled %}
+      <button class="btn btn-primary btn-block" type="button" data-pay>Перейти к оплате</button>
+      <p class="muted small">После оплаты вернитесь на сайт — подписка включится автоматически.</p>
+      {% else %}
+      <p class="notice">
+        Онлайн-оплата пока не подключена. Напишите
+        {% if support_telegram %}<a href="https://t.me/{{ support_telegram }}" target="_blank" rel="noopener">в Telegram</a>{% elif support_email %}<a href="mailto:{{ support_email }}">на почту</a>{% else %}в поддержку{% endif %},
+        чтобы получить доступ.
+      </p>
+      {% endif %}
+    </div>
+
+    <p class="muted small center">
+      Нажимая «Перейти к оплате», вы соглашаетесь с
+      <a href="/legal">условиями оплаты и возврата</a>.
+    </p>
+  </div>
+</section>
+{% endblock %}

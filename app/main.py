@@ -15,11 +15,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from .config import settings
 from .database import engine, init_db
-from .routes import account, admin, auth, download, launcher
+from .routes import account, admin, auth, billing, download, launcher, site
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("aurum")
@@ -59,9 +60,18 @@ async def unexpected_error(_request: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(status_code=500, content={"detail": "Внутренняя ошибка сервера"})
 
 
-@app.get("/")
-def root() -> dict:
-    return {"service": "Aurum Auth", "status": "ok", "version": "2.0.0"}
+app.mount("/static", StaticFiles(directory=str(site.WEB_DIR / "static")), name="static")
+
+
+@app.get("/api/info")
+def info() -> dict:
+    return {
+        "service": "Aurum Auth",
+        "status": "ok",
+        "version": "2.1.0",
+        "payments": "yookassa" if settings.payments_enabled else "off",
+        "game_version": settings.game_version,
+    }
 
 
 @app.get("/api/health")
@@ -84,3 +94,5 @@ app.include_router(account.router)
 app.include_router(admin.router)
 app.include_router(download.router)
 app.include_router(launcher.router)
+app.include_router(billing.router)
+app.include_router(site.router)

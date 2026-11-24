@@ -1,8 +1,8 @@
-"""Модели: аккаунт + подписка одного пользователя."""
+"""Модели: аккаунт + подписка одного пользователя + платежи."""
 
 from __future__ import annotations
 
-from sqlalchemy import BigInteger, Integer, String
+from sqlalchemy import BigInteger, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .database import Base
@@ -70,3 +70,43 @@ class User(Base):
     def revoke(self) -> None:
         self.sub_expires_at = now_ts()
         self.plan = "none"
+
+
+class Payment(Base):
+    """Счёт на подписку. Один платёж = один тариф, оплата подтверждается провайдером."""
+
+    __tablename__ = "payments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True, nullable=False)
+
+    plan_id: Mapped[str] = mapped_column(String(32), nullable=False)
+    days: Mapped[int] = mapped_column(Integer, nullable=False)
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)  # копейки
+    currency: Mapped[str] = mapped_column(String(8), default="RUB", nullable=False)
+
+    provider: Mapped[str] = mapped_column(String(16), default="yookassa", nullable=False)
+    provider_id: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)
+    status: Mapped[str] = mapped_column(String(16), default="pending", nullable=False)
+    confirmation_url: Mapped[str | None] = mapped_column(String(1024))
+
+    created_at: Mapped[int] = mapped_column(BigInteger, default=now_ts, nullable=False)
+    paid_at: Mapped[int | None] = mapped_column(BigInteger)
+
+    @property
+    def succeeded(self) -> bool:
+        return self.status == "succeeded"
+
+    def to_public(self) -> dict:
+        return {
+            "id": self.id,
+            "plan_id": self.plan_id,
+            "days": self.days,
+            "amount": self.amount,
+            "amount_label": f"{self.amount // 100} ₽",
+            "currency": self.currency,
+            "status": self.status,
+            "created_at": iso(self.created_at),
+            "paid_at": iso(self.paid_at),
+        }
+

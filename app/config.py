@@ -58,6 +58,32 @@ class Settings:
         self.port = int(os.environ.get("PORT", "8000"))
         self.is_render = bool(os.environ.get("RENDER"))
 
+        # ---------------------------------------------------------------- сайт
+        self.public_base_url = (
+            os.environ.get("PUBLIC_BASE_URL", "").strip() or "https://aurum-auth.onrender.com"
+        ).rstrip("/")
+        self.support_telegram = os.environ.get("SUPPORT_TELEGRAM", "").strip().lstrip("@")
+        self.support_email = os.environ.get("SUPPORT_EMAIL", "").strip()
+
+        # ------------------------------------------------------------- лаунчер
+        self.launcher_url = os.environ.get("LAUNCHER_URL", "").strip()
+        self.launcher_sha256 = os.environ.get("LAUNCHER_SHA256", "").strip().lower()
+        self.launcher_size = int(os.environ.get("LAUNCHER_SIZE", "0") or 0)
+        self.launcher_version = os.environ.get("LAUNCHER_VERSION", "").strip()
+
+        # ------------------------------------------------------------- платежи
+        self.yookassa_shop_id = os.environ.get("YOOKASSA_SHOP_ID", "").strip()
+        self.yookassa_secret_key = os.environ.get("YOOKASSA_SECRET_KEY", "").strip()
+        # Куда ЮKassa вернёт покупателя после оплаты.
+        self.yookassa_return_url = (
+            os.environ.get("YOOKASSA_RETURN_URL", "").strip()
+            or f"{self.public_base_url}/buy/success"
+        )
+
+    @property
+    def payments_enabled(self) -> bool:
+        return bool(self.yookassa_shop_id and self.yookassa_secret_key)
+
     def warnings(self) -> list[str]:
         problems: list[str] = []
         if self.secret_key == "dev-insecure-secret":

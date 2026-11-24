@@ -223,10 +223,54 @@ curl -X POST https://aurum-auth.onrender.com/api/admin/grant `
 | `TOKEN_TTL_SECONDS` | нет | срок жизни токена, по умолчанию 43200 |
 | `GAME_URL` / `GAME_SHA256` / `GAME_SIZE` / `GAME_VERSION` | да | среда игры для лаунчера |
 | `JAR_URL` / `JAR_SHA256` / `JAR_SIZE` | желательно | клиент в GitHub Releases |
+| `LAUNCHER_URL` / `LAUNCHER_SHA256` / `LAUNCHER_SIZE` / `LAUNCHER_VERSION` | желательно | exe лаунчера из GitHub Releases |
+| `PUBLIC_BASE_URL` | нет | публичный адрес сайта, по умолчанию `https://aurum-auth.onrender.com` |
+| `SUPPORT_TELEGRAM` / `SUPPORT_EMAIL` | нет | контакты в подвале, кабинете и на странице оплаты |
+| `YOOKASSA_SHOP_ID` / `YOOKASSA_SECRET_KEY` | для оплаты | магазин ЮKassa; без них сайт работает в режиме заявки |
 | `JAR_PATH` / `GAME_PATH` | нет | локальные файлы вместо URL |
 | `CORS_ORIGINS` | нет | по умолчанию `*` |
 
-## 8. Ограничения и безопасность
+## 8. Сайт и оплата
+
+Сайт отдаёт тот же сервис: `https://aurum-auth.onrender.com`.
+
+| Страница | Адрес | Что делает |
+|---|---|---|
+| Лендинг | `/` | описание, тарифы, FAQ, кнопка скачивания |
+| Вход / регистрация | `/login`, `/register` | общий аккаунт с лаунчером |
+| Кабинет | `/account` | подписка, устройство, история платежей |
+| Покупка | `/buy?plan=quarter` | счёт ЮKassa и переход на оплату |
+| Документы | `/legal` | оплата, возврат, контакты |
+
+Тарифы: 30 / 90 / 365 дней = 199 / 499 / 1490 ₽.
+
+Пока ключей ЮKassa нет, сайт работает в режиме заявки: кнопка оплаты
+заменяется на контакт поддержки, а подписку выдаёт админ через
+`/api/admin/grant`. Чтобы включить оплату, добавьте в Render Environment:
+
+- `YOOKASSA_SHOP_ID` — shopId магазина;
+- `YOOKASSA_SECRET_KEY` — секретный ключ (live или test);
+- `PUBLIC_BASE_URL` — публичный адрес сайта;
+- `SUPPORT_TELEGRAM` или `SUPPORT_EMAIL` — контакты.
+
+В личном кабинете ЮKassa включите HTTP-уведомления на
+`https://aurum-auth.onrender.com/api/billing/webhook/yookassa`
+(события `payment.succeeded`, `payment.canceled`). Вебхук не доверяет телу
+запроса: статус перепроверяется через API ЮKassa, а сумма сверяется с тарифом.
+
+### Сборка и публикация лаунчера
+
+```powershell
+python tools/build_launcher.py     # build/dist/AurumLauncher.exe + build/launcher.env
+python publish_launcher.py         # GitHub Releases + переменные Render
+```
+
+`publish_launcher.py` кладёт exe в релиз `aurum-client-downloads`, пишет
+`LAUNCHER_URL/LAUNCHER_SHA256/LAUNCHER_SIZE/LAUNCHER_VERSION` в
+`build/artifacts.env` и передаёт их в Render; `deploy_render.py` повторяет это
+при следующем деплое.
+
+## 9. Ограничения и безопасность
 
 - **Free web service Render засыпает** после 15 минут простоя: первый запрос —
   холодный старт 30–60 секунд. Лаунчер это переживает (таймаут 25 с на запрос,
@@ -250,7 +294,7 @@ curl -X POST https://aurum-auth.onrender.com/api/admin/grant `
 - Пароли не логируются, ответ на неверный логин и пароль одинаковый,
   `/docs` FastAPI отключена.
 
-## 9. Что проверено на этой машине
+## 10. Что проверено на этой машине
 
 - 17/17 сквозных проверок: манифест без подписки → 403, выдача подписки,
   скачивание архива байт в байт, распаковка, JAR в `offline-run/game/mods`,

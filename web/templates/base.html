@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Aurum — игровой клиент{% endblock %}</title>
+  <meta name="description" content="{% block description %}Aurum — приватный игровой клиент с автозапуском, привязкой к устройству и подпиской. Один вход для сайта и лаунчера.{% endblock %}">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/site.css">
+  <script defer src="/static/site.js"></script>
+</head>
+<body class="page-{{ page }}">
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="/" aria-label="Aurum, на главную">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Aurum</span>
+      </a>
+
+      <nav class="nav" aria-label="Разделы">
+        <a href="/#features">Возможности</a>
+        <a href="/#pricing">Тарифы</a>
+        <a href="/#faq">Вопросы</a>
+        <a href="/legal">Документы</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="btn btn-ghost btn-sm" href="/login" data-auth="out">Войти</a>
+        <a class="btn btn-ghost btn-sm" href="/account" data-auth="in" hidden>Кабинет</a>
+        <a class="btn btn-primary btn-sm" href="/download/launcher">Скачать</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <div class="footer-brand">
+        <a class="brand" href="/">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>Aurum</span>
+        </a>
+        <p class="muted">Приватный игровой клиент. Версия среды {{ game_version }}.</p>
+      </div>
+
+      <div class="footer-links">
+        <a href="/#pricing">Тарифы</a>
+        <a href="/account">Личный кабинет</a>
+        <a href="/legal">Оплата и возврат</a>
+        {% if support_telegram %}
+        <a href="https://t.me/{{ support_telegram }}" rel="noopener" target="_blank">Поддержка</a>
+        {% elif support_email %}
+        <a href="mailto:{{ support_email }}">Поддержка</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="wrap footer-note muted">
+      <span>© <span data-year>2026</span> Aurum</span>
+      <span>Оплата картами и СБП через ЮKassa</span>
+    </div>
+  </footer>
+
+  <script>
+    window.AURUM = {
+      plans: {{ plans|tojson }},
+      paymentsEnabled: {{ payments_enabled|tojson }},
+      launcherUrl: {{ launcher_url|tojson }},
+      launcherSize: {{ launcher_size|tojson }},
+      launcherVersion: {{ launcher_version|tojson }},
+      supportTelegram: {{ support_telegram|tojson }},
+      supportEmail: {{ support_email|tojson }}
+    };
+  </script>
+</body>
+</html>

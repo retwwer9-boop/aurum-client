@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — Aurum{% endblock %}
+
+{% block content %}
+<section class="auth">
+  <div class="auth-card">
+    <h1>Создать аккаунт</h1>
+    <p class="muted">Логин латиницей: 3–32 символа, без пробелов.</p>
+
+    <form data-form="register" novalidate>
+      <label class="field">
+        <span>Логин</span>
+        <input name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required
+               placeholder="например, dimasik">
+      </label>
+      <label class="field">
+        <span>Пароль</span>
+        <input name="password" type="password" autocomplete="new-password" minlength="8" required>
+      </label>
+      <label class="field">
+        <span>Пароль ещё раз</span>
+        <input name="password2" type="password" autocomplete="new-password" minlength="8" required>
+      </label>
+
+      <p class="form-error" data-error hidden></p>
+      <button class="btn btn-primary btn-block" type="submit">Создать аккаунт</button>
+    </form>
+
+    <p class="auth-alt muted">Уже есть аккаунт? <a href="/login">Войти</a></p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Вход — Aurum{% endblock %}
+
+{% block content %}
+<section class="auth">
+  <div class="auth-card">
+    <h1>Вход</h1>
+    <p class="muted">Тот же логин и пароль, что в лаунчере.</p>
+
+    <form data-form="login" novalidate>
+      <label class="field">
+        <span>Логин</span>
+        <input name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      </label>
+      <label class="field">
+        <span>Пароль</span>
+        <input name="password" type="password" autocomplete="current-password" required>
+      </label>
+
+      <p class="form-error" data-error hidden></p>
+      <button class="btn btn-primary btn-block" type="submit">Войти</button>
+    </form>
+
+    <p class="auth-alt muted">Нет аккаунта? <a href="/register">Создать за минуту</a></p>
+  </div>
+</section>
+{% endblock %}

@@ -182,13 +182,20 @@ def upload_asset(full_repo: str, release_id: int, path: Path, name: str) -> None
     query = urllib.parse.urlencode({"name": name})
     url = f"https://uploads.github.com/repos/{full_repo}/releases/{release_id}/assets?{query}"
 
+    if name.endswith(".zip"):
+        content_type = "application/zip"
+    elif name.endswith(".jar"):
+        content_type = "application/java-archive"
+    else:
+        content_type = "application/octet-stream"
+
     def send() -> None:
         http(
             url,
             "POST",
             token=GITHUB_TOKEN,
             data_file=path,
-            content_type="application/zip" if name.endswith(".zip") else "application/java-archive",
+            content_type=content_type,
             timeout=3600,
         )
 

@@ -73,3 +73,12 @@ class GrantIn(BaseModel):
 
 class UsernameIn(BaseModel):
     username: str
+
+
+class CheckoutIn(BaseModel):
+    plan_id: str
+
+    @field_validator("plan_id")
+    @classmethod
+    def _plan_id(cls, value: str) -> str:
+        return value.strip().lower()

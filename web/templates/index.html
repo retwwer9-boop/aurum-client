@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Aurum — игровой клиент с автозапуском{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="dot"></span> Aurum 26.2 · Windows</p>
+      <h1>Клиент, который<br><span class="gold">ставится сам</span></h1>
+      <p class="lead">
+        Лаунчер скачивает среду, проверяет контрольные суммы, кладёт моды на место
+        и запускает игру. Один вход — для сайта, лаунчера и подписки.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/download/launcher">
+          Скачать лаунчер
+          {% if launcher_size %}<span class="btn-note">{{ (launcher_size / 1048576)|round(0)|int }} МБ</span>{% endif %}
+        </a>
+        <a class="btn btn-ghost" href="/account">Личный кабинет</a>
+      </div>
+
+      <ul class="hero-meta">
+        <li>Windows 10/11</li>
+        <li>Среда {{ game_version }}</li>
+        <li>Обновления с сервера</li>
+      </ul>
+    </div>
+
+    <div class="launcher-card" aria-label="Как выглядит лаунчер">
+      <div class="launcher-bar">
+        <span class="launcher-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="launcher-title">Aurum Launcher</span>
+      </div>
+      <div class="launcher-body">
+        <div class="launcher-row done"><span class="tick">✓</span> Вход выполнен <b>dimasik</b></div>
+        <div class="launcher-row done"><span class="tick">✓</span> Среда установлена <b>{{ game_version }}</b></div>
+        <div class="launcher-row done"><span class="tick">✓</span> Моды на месте <b>aurum.jar</b></div>
+        <div class="launcher-progress"><span></span></div>
+        <div class="launcher-play">Играть</div>
+        <p class="launcher-hint">%APPDATA%\AurumClient\game</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Что делает лаунчер</h2>
+      <p class="muted">Четыре вещи, из-за которых всё не разваливается.</p>
+    </div>
+
+    <div class="grid grid-4">
+      <article class="card feature">
+        <h3>Ставит в APPDATA</h3>
+        <p>Игра живёт в <code>%APPDATA%\AurumClient</code>. Никакого поиска папок на рабочем столе и мусора по диску.</p>
+      </article>
+      <article class="card feature">
+        <h3>Проверяет SHA-256</h3>
+        <p>Архив сверяется с хешем с сервера, распаковка защищена от путей наружу. Битый файл просто скачается заново.</p>
+      </article>
+      <article class="card feature">
+        <h3>Докачивает обрывы</h3>
+        <p>584 МБ одним куском проходят не всегда: загрузка продолжается с места обрыва, а не с нуля.</p>
+      </article>
+      <article class="card feature">
+        <h3>Держит привязку</h3>
+        <p>Аккаунт закрепляется за одним ПК. Перенос на другое устройство — через поддержку, без передачи друзьям.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Подписка</h2>
+      <p class="muted">Один платёж — доступ к сайту и лаунчеру. Продление в любой момент.</p>
+    </div>
+
+    <div class="grid grid-3 pricing">
+      {% for plan in plans %}
+      <article class="card price-card{% if plan.badge %} featured{% endif %}">
+        {% if plan.badge %}<span class="badge">{{ plan.badge }}</span>{% endif %}
+        <h3>{{ plan.title }}</h3>
+        <p class="price">{{ plan.price_label }}</p>
+        {% if plan.per_month %}<p class="per-month">{{ plan.per_month }}</p>{% endif %}
+        <p class="price-note">{{ plan.note }}</p>
+        <a class="btn {% if plan.badge %}btn-primary{% else %}btn-ghost{% endif %} btn-block"
+           href="/buy?plan={{ plan.id }}">Купить</a>
+      </article>
+      {% endfor %}
+    </div>
+
+    {% if not payments_enabled %}
+    <p class="notice">
+      Приём оплаты ещё не включён. Напишите
+      {% if support_telegram %}<a href="https://t.me/{{ support_telegram }}" target="_blank" rel="noopener">в Telegram</a>{% elif support_email %}<a href="mailto:{{ support_email }}">на почту</a>{% else %}в поддержку{% endif %}
+      — подписку выдадим вручную.
+    </p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Как начать</h2>
+      <p class="muted">Три шага, ни одной команды в консоли.</p>
+    </div>
+
+    <ol class="steps">
+      <li>
+        <span class="step-num">01</span>
+        <h3>Скачать и запустить</h3>
+        <p>Один <code>AurumLauncher.exe</code>. Python и Java ставить не нужно — всё внутри.</p>
+      </li>
+      <li>
+        <span class="step-num">02</span>
+        <h3>Войти или создать аккаунт</h3>
+        <p>Тот же логин работает на сайте и в лаунчере. Подписка подтягивается сразу.</p>
+      </li>
+      <li>
+        <span class="step-num">03</span>
+        <h3>Нажать «Играть»</h3>
+        <p>Среда скачается при первом запуске и будет обновляться сама, когда выйдет новая версия.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <div class="wrap narrow">
+    <div class="section-head">
+      <h2>Вопросы</h2>
+    </div>
+
+    <details class="faq">
+      <summary>Нужно ли что-то устанавливать кроме лаунчера?</summary>
+      <p>Нет. Лаунчер — один exe-файл, внутри уже есть всё необходимое. Он сам скачает среду игры и клиентский мод.</p>
+    </details>
+    <details class="faq">
+      <summary>Куда ставятся файлы игры?</summary>
+      <p>В <code>%APPDATA%\AurumClient\game</code>. Настройки и кеш — рядом, в той же папке. Удалить всё можно, просто стерев <code>%APPDATA%\AurumClient</code>.</p>
+    </details>
+    <details class="faq">
+      <summary>Можно играть с двух компьютеров?</summary>
+      <p>Аккаунт привязан к одному устройству. Для переноса напишите в поддержку — привязку сбросят один раз.</p>
+    </details>
+    <details class="faq">
+      <summary>Как проходит оплата?</summary>
+      <p>Картой или через СБП на странице ЮKassa. Подписка активируется автоматически в течение минуты после оплаты.</p>
+    </details>
+    <details class="faq">
+      <summary>Что будет, когда подписка закончится?</summary>
+      <p>Лаунчер перестанет запускать игру, но файлы и настройки останутся на месте. После продления всё продолжит работать.</p>
+    </details>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="wrap cta-inner">
+    <div>
+      <h2>Готовы попробовать?</h2>
+      <p class="muted">Скачайте лаунчер и войдите под своим аккаунтом.</p>
+    </div>
+    <a class="btn btn-primary" href="/download/launcher">Скачать лаунчер</a>
+  </div>
+</section>
+{% endblock %}

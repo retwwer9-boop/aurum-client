@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Личный кабинет — Aurum{% endblock %}
+
+{% block content %}
+<section class="section account">
+  <div class="wrap">
+    <div class="account-head">
+      <div>
+        <p class="eyebrow"><span class="dot"></span> Личный кабинет</p>
+        <h1>Привет, <span class="gold" data-username>…</span></h1>
+      </div>
+      <button class="btn btn-ghost btn-sm" type="button" data-logout>Выйти</button>
+    </div>
+
+    <div class="account-grid">
+      <article class="card panel">
+        <h2>Подписка</h2>
+        <p class="status-line">
+          <span class="pill" data-sub-status>загрузка</span>
+          <span class="muted" data-sub-plan></span>
+        </p>
+        <p class="big" data-sub-days>—</p>
+        <p class="muted">Действует до <span data-sub-expires>—</span></p>
+        <div class="panel-actions">
+          <a class="btn btn-primary btn-sm" href="/buy?plan=quarter">Продлить</a>
+          <a class="btn btn-ghost btn-sm" href="/#pricing">Все тарифы</a>
+        </div>
+      </article>
+
+      <article class="card panel" id="launcher">
+        <h2>Лаунчер</h2>
+        {% if launcher_url %}
+        <p class="muted">Один файл, установка не нужна. Версия {{ launcher_version or "—" }}{% if launcher_size %}, {{ (launcher_size / 1048576)|round(0)|int }} МБ{% endif %}.</p>
+        <div class="panel-actions">
+          <a class="btn btn-primary btn-sm" href="/download/launcher">Скачать AurumLauncher.exe</a>
+        </div>
+        {% else %}
+        <p class="muted">Сборка лаунчера готовится. Пока можно запустить его из папки проекта: <code>run_launcher.bat</code>.</p>
+        {% endif %}
+        <p class="muted small">Устройство: <span data-hwid>не привязано</span></p>
+      </article>
+
+      <article class="card panel">
+        <h2>Доступ</h2>
+        <p class="muted">Игра запускается только при активной подписке. Если сменился компьютер — напишите в поддержку, привязку сбросят.</p>
+        <div class="panel-actions">
+          {% if support_telegram %}
+          <a class="btn btn-ghost btn-sm" href="https://t.me/{{ support_telegram }}" target="_blank" rel="noopener">Поддержка в Telegram</a>
+          {% elif support_email %}
+          <a class="btn btn-ghost btn-sm" href="mailto:{{ support_email }}">Написать на почту</a>
+          {% else %}
+          <a class="btn btn-ghost btn-sm" href="/legal">Контакты</a>
+          {% endif %}
+        </div>
+      </article>
+    </div>
+
+    <article class="card panel history">
+      <h2>Платежи</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Дата</th><th>Тариф</th><th>Сумма</th><th>Статус</th></tr>
+          </thead>
+          <tbody data-history>
+            <tr><td colspan="4" class="muted">Загрузка…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}
