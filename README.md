@@ -5,6 +5,19 @@
 `%APPDATA%\AurumClient\game`, клиент — в её `mods`. Деплой и публикация файлов —
 скриптами, без ручных команд git.
 
+## Развёрнутый сервер
+
+| Что | Где |
+| --- | --- |
+| API | https://aurum-auth.onrender.com |
+| Проверка | https://aurum-auth.onrender.com/api/health |
+| Код | https://github.com/retwwer9-boop/aurum-client |
+| Файлы игры | https://github.com/retwwer9-boop/aurum-client-downloads/releases |
+| Render-сервис | `srv-dc2ome17lnhs73f2s970`, Postgres `aurum-db` (free до 24.12.2026) |
+| ADMIN_TOKEN | `build/credentials.env` (локально, в git не попадает) |
+
+Подписки выдаются запросом к `/api/admin/grant` с заголовком `X-Admin-Token`.
+
 ```
 aurum-client/
 ├─ app/                        бэкенд FastAPI
@@ -49,6 +62,14 @@ aurum-client/
 
 Скачивание и распаковка идут в фоновом потоке; Tk обновляется через очередь,
 поэтому окно не зависает и не падает на «main thread is not in main loop».
+
+### Если провайдер блокирует onrender.com
+
+Некоторые сети сбрасывают соединение с адресами Render (`216.24.57.0/24`).
+Лаунчер это обходит сам: сначала идёт обычный запрос, а при сетевой ошибке
+повторяет его через доступный edge Cloudflare (`launcher/api.py`,
+`EDGE_FALLBACK_IPS`) — SNI и сертификат остаются `aurum-auth.onrender.com`.
+Внешне это незаметно: в логе просто появляется ответ сервера.
 
 ## 2. Локальный запуск
 

@@ -2,15 +2,91 @@
 
 from __future__ import annotations
 
+import http.client
 import json
 import os
+import socket
+import ssl
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Callable
 
 DEFAULT_API_URL = "https://aurum-auth.onrender.com"
 CHUNK = 128 * 1024
+
+# Некоторые провайдеры блокируют адреса, куда резолвится *.onrender.com
+# (216.24.57.0/24): TCP-соединение сбрасывается. Render живёт за Cloudflare,
+# поэтому тот же сервис доступен через любой её edge: SNI и сертификат
+# остаются прежними, меняется только IP, к которому подключаемся.
+EDGE_FALLBACK_IPS = (
+    "104.18.0.1",
+    "104.17.0.1",
+    "162.159.0.1",
+    "104.18.32.1",
+    "172.64.0.1",
+)
+
+_edge_ip: str | None = None
+
+
+class _EdgeConnection(http.client.HTTPSConnection):
+    """HTTPS-соединение к конкретному IP с SNI/host исходного домена."""
+
+    def __init__(self, host: str, ip: str, **kwargs) -> None:
+        super().__init__(host, **kwargs)
+        self._ip = ip
+
+    def connect(self) -> None:  # type: ignore[override]
+        self.sock = socket.create_connection((self._ip, self.port or 443), self.timeout, self.source_address)
+        self.sock = self._context.wrap_socket(self.sock, server_hostname=self.host)
+
+
+class _EdgeHandler(urllib.request.HTTPSHandler):
+    def __init__(self, ip: str) -> None:
+        super().__init__()
+        self._ip = ip
+
+    def https_open(self, req):
+        return self.do_open(lambda host, **kwargs: _EdgeConnection(host, self._ip, **kwargs), req)
+
+
+def _edge_host(host: str) -> bool:
+    return host == "onrender.com" or host.endswith(".onrender.com")
+
+
+def _urlopen(request: urllib.request.Request, timeout: float):
+    """urlopen с запасным маршрутом через edge Cloudflare для *.onrender.com."""
+    global _edge_ip
+    host = urllib.parse.urlsplit(request.full_url).hostname or ""
+
+    def via_edge(ip: str):
+        opener = urllib.request.build_opener(_EdgeHandler(ip))
+        return opener.open(request, timeout=timeout)
+
+    if _edge_ip and _edge_host(host):
+        return via_edge(_edge_ip)
+
+    try:
+        return urllib.request.urlopen(request, timeout=timeout)
+    except urllib.error.HTTPError:
+        raise
+    except (urllib.error.URLError, OSError):
+        if not _edge_host(host):
+            raise
+
+    last: Exception | None = None
+    for ip in EDGE_FALLBACK_IPS:
+        try:
+            response = via_edge(ip)
+            _edge_ip = ip
+            return response
+        except urllib.error.HTTPError:
+            raise
+        except (urllib.error.URLError, OSError) as exc:
+            last = exc
+    raise urllib.error.URLError(f"нет маршрута к {host}: {last}")
 
 
 class ApiError(RuntimeError):
@@ -38,7 +114,7 @@ class AurumClient:
             request.add_header("Authorization", f"Bearer {self.token}")
 
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+            with _urlopen(request, self.timeout) as response:
                 body = response.read()
         except urllib.error.HTTPError as exc:
             detail = _error_detail(exc)
@@ -92,7 +168,7 @@ class AurumClient:
 
         temporary = destination.with_suffix(destination.suffix + ".part")
         try:
-            with urllib.request.urlopen(request, timeout=120) as response:
+            with _urlopen(request, 120) as response:
                 total = int(response.headers.get("Content-Length") or 0)
                 received = 0
                 with open(temporary, "wb") as handle:
