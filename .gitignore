@@ -1,0 +1,21 @@
+# секреты (токены Render и GitHub — только локально)
+deploy.env
+.env
+
+# локальные артефакты
+*.db
+*.db-wal
+*.db-shm
+__pycache__/
+*.pyc
+.venv/
+venv/
+.admin_token
+
+# собранные архивы: раздаются через GitHub Releases, не через git
+build/
+static/game.zip
+static/*.zip
+static/aurum.jar
+aurum.jar
+*.part

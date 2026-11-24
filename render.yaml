@@ -1,0 +1,44 @@
+# Render Blueprint для Aurum Auth.
+# Если разворачивать через Dashboard (New → Blueprint), DATABASE_URL нужно
+# создать отдельно (Postgres → New) и вставить в Environment сервиса.
+# deploy_render.py делает всё это сам через API.
+services:
+  - type: web
+    name: aurum-auth
+    runtime: python
+    plan: free
+    region: frankfurt
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: ALLOW_REGISTRATION
+        value: "1"
+      # Подключить Postgres: Render → New → Postgres, затем вставить
+      # Internal Database URL сюда и нажать Save (сервис перезапустится).
+      - key: DATABASE_URL
+        sync: false
+      # Среду игры и клиент публикует publish_assets.py; при Blueprint-деплое
+      # значения можно вставить вручную (ссылки GitHub Releases).
+      - key: GAME_URL
+        sync: false
+      - key: GAME_SHA256
+        sync: false
+      - key: GAME_SIZE
+        sync: false
+      - key: GAME_VERSION
+        sync: false
+      - key: JAR_URL
+        sync: false
+      - key: JAR_SHA256
+        sync: false
+      - key: JAR_SIZE
+        sync: false
