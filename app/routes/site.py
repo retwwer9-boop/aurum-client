@@ -26,7 +26,8 @@ def _context(request: Request, **extra) -> dict:
         "payments_enabled": settings.payments_enabled,
         "launcher_url": settings.launcher_url,
         "launcher_size": settings.launcher_size,
-        "launcher_version": settings.launcher_version,
+        # В релизах тег вида launcher-2026.11.24 — на сайте оставляем только дату.
+        "launcher_version": settings.launcher_version.removeprefix("launcher-"),
         "support_telegram": settings.support_telegram,
         "support_email": settings.support_email,
         "game_version": settings.game_version,

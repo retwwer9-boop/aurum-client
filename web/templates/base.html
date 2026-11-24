@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Aurum — игровой клиент{% endblock %}</title>
   <meta name="description" content="{% block description %}Aurum — приватный игровой клиент с автозапуском, привязкой к устройству и подпиской. Один вход для сайта и лаунчера.{% endblock %}">
+  <meta name="theme-color" content="#07080b">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Aurum">
+  <meta property="og:title" content="{% block og_title %}Aurum — игровой клиент с автозапуском{% endblock %}">
+  <meta property="og:description" content="Лаунчер сам скачивает среду, проверяет SHA-256 и запускает игру. Подписка на 30, 90 или 365 дней.">
+  <meta property="og:url" content="{{ request.url.path }}">
+  <meta name="twitter:card" content="summary">
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/site.css">
   <script defer src="/static/site.js"></script>
