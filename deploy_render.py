@@ -301,10 +301,14 @@ def _wait_database(database_id: str, timeout: float = 600.0) -> str | None:
         database = unwrap(render("GET", f"/postgres/{database_id}"), "postgres") or {}
         status = str(database.get("status", ""))
         if status in {"available", "ready"}:
-            info = database.get("connectionInfo", {}) or {}
+            # Строка подключения лежит в отдельном endpoint: в объекте базы её нет.
+            info = render("GET", f"/postgres/{database_id}/connection-info") or {}
             url = info.get("internalConnectionString") or info.get("externalConnectionString")
             if url:
                 print("[4/6] Postgres готов")
+                expires = database.get("expiresAt")
+                if expires:
+                    print(f"      бесплатный Postgres действует до {str(expires)[:10]}")
                 return url
         if status in {"creation_failed", "unavailable"}:
             print(f"[4/6] Postgres в статусе {status}")

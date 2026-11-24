@@ -150,6 +150,14 @@ python deploy_render.py --check
 python deploy_render.py
 ```
 
+Если провайдер блокирует адреса Render (таймауты/TLS reset на `api.render.com`),
+в `deploy.env` можно указать доступный edge Cloudflare — сертификат и SNI
+останутся `render.com`:
+
+```ini
+RENDER_EDGE_IP=104.18.0.1
+```
+
 Скрипт сам:
 
 1. создаёт **приватный** репозиторий `aurum-client` (если его нет);
