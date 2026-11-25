@@ -13,6 +13,7 @@ class Plan:
     title: str
     note: str
     badge: str = ""
+    primary: bool = False
 
     @property
     def rubles(self) -> int:
@@ -25,7 +26,7 @@ class Plan:
     @property
     def per_month(self) -> str:
         if self.days >= 30:
-            months = max(self.days / 30, 1)
+            months = max(round(self.days / 30.44), 1)
             return f"{round(self.rubles / months)} ₽/мес"
         return ""
 
@@ -39,6 +40,7 @@ class Plan:
             "title": self.title,
             "note": self.note,
             "badge": self.badge,
+            "primary": self.primary,
         }
 
 
@@ -57,6 +59,7 @@ PLANS: tuple[Plan, ...] = (
         title="90 дней",
         note="Выгоднее на 16%",
         badge="Популярный",
+        primary=True,
     ),
     Plan(
         id="year",

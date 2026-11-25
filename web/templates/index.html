@@ -87,7 +87,7 @@
         <p class="price">{{ plan.price_label }}</p>
         {% if plan.per_month %}<p class="per-month">{{ plan.per_month }}</p>{% endif %}
         <p class="price-note">{{ plan.note }}</p>
-        <a class="btn {% if plan.badge %}btn-primary{% else %}btn-ghost{% endif %} btn-block"
+        <a class="btn {% if plan.primary %}btn-primary{% else %}btn-ghost{% endif %} btn-block"
            href="/buy?plan={{ plan.id }}">Купить</a>
       </article>
       {% endfor %}
