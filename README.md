@@ -192,6 +192,15 @@ RENDER_EDGE_IP=104.18.0.1
 
 Ожидаемый адрес: `https://aurum-auth.onrender.com`.
 
+**Автодеплой по push не срабатывает:** сервис создан через API, и Render не
+подключил к нему GitHub-вебхук. После `git push` деплой запускается явно:
+
+```powershell
+python tools/deploy.py
+```
+
+Или тот же вызов делает `publish_launcher.py` при публикации exe.
+
 **Единственный ручной шаг для приватного репозитория:** Render видит приватные
 репозитории только после установки GitHub App. Один раз в браузере:
 Dashboard → Account Settings → GitHub → Configure → дать доступ к `aurum-client`.
@@ -302,4 +311,11 @@ python publish_launcher.py         # GitHub Releases + переменные Rend
   `Authorization` при загрузке с чужого домена.
 - Окно лаунчера: вход → автоматическая установка → прогресс 100% → «Играть»
   запускает игру из `%APPDATA%\AurumClient\game`.
+- Сайт на Render: `/`, `/login`, `/register`, `/account`, `/buy`, `/legal`
+  отдают 200; вход владельца в кабинете, активная подписка и привязка HWID
+  отображаются; `/download/launcher` редиректит на exe в GitHub Releases
+  (11,4 МБ, sha256 сверен); `/docs` и `/openapi.json` — 404.
+- Оплата при пустых ключах: `/api/billing/checkout` → 503 с понятным текстом,
+  мусорный счёт в историю не попадает. Начисление подписки проверено на живой
+  БД: повторный вызов не даёт второй срок, недоплата не активирует доступ.
 - `python deploy_render.py --check` проверяет ключ Render и токен GitHub.
