@@ -267,6 +267,15 @@ curl -X POST https://aurum-auth.onrender.com/api/admin/grant `
 (события `payment.succeeded`, `payment.canceled`). Вебхук не доверяет телу
 запроса: статус перепроверяется через API ЮKassa, а сумма сверяется с тарифом.
 
+Чтобы не держать ключи в переписке, заполните `yookassa.env` (в `.gitignore`)
+и запустите:
+
+```powershell
+python tools/enable_payments.py   # ключи → Render + деплой
+```
+
+Скрипт печатает только названия переменных, значения секретов не логируются.
+
 ### Сборка и публикация лаунчера
 
 ```powershell

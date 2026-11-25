@@ -1,6 +1,7 @@
 # секреты (токены Render и GitHub — только локально)
 deploy.env
 .env
+yookassa.env
 
 # локальные артефакты
 *.db
