@@ -12,9 +12,9 @@
   <meta property="og:description" content="Лаунчер сам скачивает среду, проверяет SHA-256 и запускает игру. Подписка на 30, 90 или 365 дней.">
   <meta property="og:url" content="{{ request.url.path }}">
   <meta name="twitter:card" content="summary">
-  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/site.css">
-  <script defer src="/static/site.js"></script>
+  <link rel="icon" href="/static/favicon.svg?v={{ asset_version }}" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/site.css?v={{ asset_version }}">
+  <script defer src="/static/site.js?v={{ asset_version }}"></script>
 </head>
 <body class="page-{{ page }}">
   <header class="site-header">

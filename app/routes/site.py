@@ -14,6 +14,21 @@ from ..plans import PLANS
 ROOT = Path(__file__).resolve().parent.parent.parent
 WEB_DIR = ROOT / "web"
 
+
+def _asset_version() -> str:
+    """Метка для /static: после деплоя браузер не держит старый CSS/JS."""
+    try:
+        stamps = [
+            int((WEB_DIR / "static" / name).stat().st_mtime)
+            for name in ("site.css", "site.js", "favicon.svg")
+        ]
+        return str(max(stamps))
+    except OSError:
+        return "1"
+
+
+ASSET_VERSION = _asset_version()
+
 templates = Jinja2Templates(directory=str(WEB_DIR / "templates"))
 
 router = APIRouter(tags=["site"])
@@ -31,6 +46,7 @@ def _context(request: Request, **extra) -> dict:
         "support_telegram": settings.support_telegram,
         "support_email": settings.support_email,
         "game_version": settings.game_version,
+        "asset_version": ASSET_VERSION,
         **extra,
     }
 
