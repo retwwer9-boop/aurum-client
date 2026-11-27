@@ -27,7 +27,10 @@ STATE_FILE = APP_DIR / "state.json"
 
 GAME_ARCHIVE = CACHE_DIR / "game.zip"
 JAR_FILE = CACHE_DIR / "aurum.jar"
-JAR_NAME = "aurum.jar"
+# Игра проверяет контрольные суммы и имена файлов в mods: этот JAR должен
+# называться так же, как в дистрибутиве, иначе запуск падает с «Runtime file changed».
+JAR_NAME = "dimasik-offline.jar"
+LEGACY_JAR_NAMES = ("aurum.jar",)
 
 # В сборке клиента моды лежат в offline-run/game/mods; в других сборках — в mods.
 MODS_CANDIDATES = (
@@ -50,6 +53,21 @@ def prepare() -> None:
     """Создаёт каталоги лаунчера. Вызывается при старте."""
     for path in (APP_DIR, GAME_DIR, CACHE_DIR):
         path.mkdir(parents=True, exist_ok=True)
+    migrate_legacy_jar()
+
+
+def migrate_legacy_jar() -> None:
+    """Переносит JAR из старого имени aurum.jar в имя, которое ждёт игра."""
+    mods = mods_dir()
+    target = mods / JAR_NAME
+    for legacy_name in LEGACY_JAR_NAMES:
+        legacy = mods / legacy_name
+        if not legacy.is_file():
+            continue
+        if target.is_file():
+            legacy.unlink(missing_ok=True)
+        else:
+            legacy.replace(target)
 
 
 def read_state() -> dict:
@@ -185,12 +203,15 @@ def jar_path() -> Path:
 
 
 def install_jar(jar: Path = JAR_FILE) -> Path:
-    """Кладёт aurum.jar в папку модов распакованной среды."""
+    """Кладёт JAR клиента в папку модов распакованной среды."""
     if not jar.is_file():
         raise GameError("JAR клиента не скачан")
     destination = jar_path()
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(jar, destination)
+    # Игра сверяет набор модов с reviewed-files.json: лишний aurum.jar ломает запуск.
+    for legacy_name in LEGACY_JAR_NAMES:
+        (destination.parent / legacy_name).unlink(missing_ok=True)
     return destination
 
 
