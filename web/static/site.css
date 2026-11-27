@@ -540,6 +540,18 @@ input:focus {
 .pill.active { color: #10261a; background: var(--ok); border-color: transparent; }
 .pill.inactive { color: #3a1414; background: #ff9d9d; border-color: transparent; }
 
+.panel p.sub-note {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 5px 11px;
+  border-radius: 9px;
+  border: 1px solid rgba(232, 181, 90, 0.35);
+  background: var(--gold-dim);
+  color: var(--gold-strong);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 .history { margin-top: 0; }
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }

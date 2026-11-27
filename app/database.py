@@ -47,6 +47,20 @@ def init_db() -> None:
     from . import models  # noqa: F401  — регистрирует таблицы
 
     Base.metadata.create_all(engine)
+    _ensure_columns()
+
+
+def _ensure_columns() -> None:
+    """Минимальные миграции для колонок, добавленных после первого деплоя."""
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    if "users" not in inspector.get_table_names():
+        return
+    columns = {column["name"] for column in inspector.get_columns("users")}
+    if "note" not in columns:
+        with engine.begin() as connection:
+            connection.execute(text("ALTER TABLE users ADD COLUMN note VARCHAR(80)"))
 
 
 def get_db():

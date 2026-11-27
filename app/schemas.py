@@ -75,6 +75,18 @@ class UsernameIn(BaseModel):
     username: str
 
 
+class NoteIn(UsernameIn):
+    note: str
+
+    @field_validator("note")
+    @classmethod
+    def _note(cls, value: str) -> str:
+        value = " ".join(value.split())
+        if len(value) > 80:
+            raise ValueError("Заметка: до 80 символов")
+        return value
+
+
 class CheckoutIn(BaseModel):
     plan_id: str
 

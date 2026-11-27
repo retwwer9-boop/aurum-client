@@ -175,6 +175,12 @@
         }
         var plan = $("[data-sub-plan]");
         if (plan) plan.textContent = sub.active ? "тариф " + (sub.plan || "premium") : "";
+        var note = $("[data-sub-note]");
+        if (note) {
+          var text = (user.note || "").trim();
+          note.textContent = text;
+          note.hidden = !text;
+        }
         var days = $("[data-sub-days]");
         if (days) days.textContent = sub.active ? sub.days_left + " дн." : "0 дн.";
         var expires = $("[data-sub-expires]");

@@ -32,6 +32,9 @@ class User(Base):
     sub_started_at: Mapped[int | None] = mapped_column(BigInteger)
     sub_expires_at: Mapped[int | None] = mapped_column(BigInteger)
 
+    # Короткая заметка от владельца, видна только в кабинете этого пользователя.
+    note: Mapped[str | None] = mapped_column(String(80))
+
     # ------------------------------------------------------------------ helpers
 
     @property
@@ -46,6 +49,7 @@ class User(Base):
             "role": self.role,
             "created_at": iso(self.created_at),
             "hwid_bound": bool(self.hwid),
+            "note": self.note or "",
         }
 
     def subscription(self) -> dict:

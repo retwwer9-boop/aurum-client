@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import User
-from ..schemas import GrantIn, UsernameIn
+from ..schemas import GrantIn, NoteIn, UsernameIn
 from ..security import require_admin
 
 router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)])
@@ -43,6 +43,15 @@ def reset_hwid(body: UsernameIn, db: Session = Depends(get_db)) -> dict:
     user.hwid = None
     db.commit()
     return {"status": "ok", "username": user.username}
+
+
+@router.post("/note")
+def set_note(body: NoteIn, db: Session = Depends(get_db)) -> dict:
+    """Короткая подпись в кабинете пользователя. Пустая строка убирает её."""
+    user = _get(db, body.username)
+    user.note = body.note or None
+    db.commit()
+    return {"status": "ok", "username": user.username, "note": user.note or ""}
 
 
 @router.get("/users")
